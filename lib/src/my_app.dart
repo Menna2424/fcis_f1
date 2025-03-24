@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
       debugShowCheckedModeBanner: false,
       onGenerateRoute:RoutsManager.router,
-      initialRoute: RoutsManager.mainScrean,
+      initialRoute: RoutsManager.loginScreen,
 
 
     );

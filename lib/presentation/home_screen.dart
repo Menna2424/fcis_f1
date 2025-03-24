@@ -23,7 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> tabs=[
     QAndAnswerTab(),
     MaterialPostScreen(),
-    OpportunitiesTab(),
+    OpportunitiesPage(),
     MaterialTab(),
     notificationTab()
 

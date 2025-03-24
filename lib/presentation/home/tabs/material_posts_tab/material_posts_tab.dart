@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/utils/colors_manager.dart';
+import '../../../../core/utils/routes_manager.dart';
 
 class MaterialPostScreen extends StatefulWidget {
   @override
@@ -10,6 +14,29 @@ class MaterialPostScreen extends StatefulWidget {
 
 class _MaterialPostScreenState extends State<MaterialPostScreen> {
   final TextEditingController _postController = TextEditingController();
+  String? userName;
+  String? userImage;
+  String? jobTitle;
+  String? userStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      userName = prefs.getString('fullName') ?? 'User Name';
+      jobTitle = prefs.getString('jobTitle')?.trim();
+      userStatus = prefs.getString('status')?.trim();
+      userImage = prefs.getString('profileImagePath');
+    });
+  }
+
+
   List<String> posts = [
     "This is the first test post on the app! ",
     "Learning Flutter is fun and useful! ",
@@ -233,8 +260,15 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
             ),
           ),
           SizedBox(width: 10),
-          CircleAvatar(
-            backgroundImage: AssetImage("assets/images/profile_img.png"),
+          InkWell(
+            onTap: () {
+              Navigator.pushNamed(context, RoutsManager.profileScreen);
+            },
+            child: CircleAvatar(
+              backgroundImage: userImage != null && userImage!.isNotEmpty
+                  ? FileImage(File(userImage!)) as ImageProvider
+                  : AssetImage('assets/images/profile_img.png'),
+            ),
           ),
           SizedBox(width: 10),
         ],
@@ -311,26 +345,33 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
                 width: 185,
                 height: 60,
                 decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(30),
-                        topLeft: Radius.circular(10)),
-                    color: Colors.black),
+                  borderRadius: BorderRadius.only(
+                      bottomRight: Radius.circular(30),
+                      topLeft: Radius.circular(10)),
+                  color: Colors.black,
+                ),
                 child: Row(
                   children: [
                     CircleAvatar(
-                        backgroundImage:
-                        AssetImage("assets/images/profile_img.png")),
+                      backgroundImage: userImage != null && userImage!.isNotEmpty
+                          ? FileImage(File(userImage!)) as ImageProvider
+                          : AssetImage("assets/images/profile_img.png"),
+                    ),
                     SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Menna Ibrahim",
+                          Text(userName ?? "User Name",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white)),
-                          Text("Flutter Developer",
-                              style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          Text(
+                              (jobTitle != null && jobTitle!.isNotEmpty)
+                                  ? jobTitle!
+                                  : userStatus ?? "",
+                              style:
+                              TextStyle(fontSize: 12, color: Colors.grey)),
                         ],
                       ),
                     ),
@@ -349,8 +390,12 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
                     Text("${comments[index]?.length ?? 0}",
                         style: TextStyle(color: Colors.white70)),
                     SizedBox(width: 10),
-                    ImageIcon(AssetImage("assets/images/up.png"),color:Colors.white70),
-                    ImageIcon(AssetImage("assets/images/Arrow Down Square Contained.png"),color: Colors.white70),
+                    ImageIcon(AssetImage("assets/images/up.png"),
+                        color: Colors.white70),
+                    ImageIcon(
+                        AssetImage(
+                            "assets/images/Arrow Down Square Contained.png"),
+                        color: Colors.white70),
                   ],
                 ),
               ),
@@ -365,7 +410,6 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
               ),
             ),
           ),
-
           if ((comments[index]?.isNotEmpty ?? false)) ...[
             Divider(color: Colors.white54),
             for (var comment in comments[index]!) _buildComment(comment),
@@ -374,6 +418,7 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
       ),
     );
   }
+
 
   Widget _buildComment(Comment comment) {
     return Padding(
@@ -388,7 +433,9 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CircleAvatar(
-              backgroundImage: AssetImage(comment.userImage),
+              backgroundImage: userImage != null && userImage!.isNotEmpty
+                  ? FileImage(File(userImage!)) as ImageProvider
+                  : AssetImage("assets/images/profile_img.png"),
               radius: 18,
             ),
             SizedBox(width: 8),
@@ -396,7 +443,7 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(comment.userName,
+                  Text(userName ?? "User Name",
                       style: TextStyle(
                           fontWeight: FontWeight.bold, color: Colors.black)),
                   Text(comment.text, style: TextStyle(color: Colors.black)),
@@ -435,6 +482,7 @@ class _MaterialPostScreenState extends State<MaterialPostScreen> {
   }
 
 
+
   Widget _buildCategoryChip(String label) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -464,4 +512,3 @@ class Comment {
     this.userReacted = "none", // Default value is "none"
   });
 }
-
